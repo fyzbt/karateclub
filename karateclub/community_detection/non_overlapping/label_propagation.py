@@ -1,10 +1,11 @@
 import random
-import networkx as nx
+import igraph
 from typing import Dict
 from karateclub.estimator import Estimator
 
+
 class LabelPropagation(Estimator):
-    r"""An implementation of `"Label Propagation Clustering" <https://arxiv.org/abs/0709.2938>`_
+    r"""An implementation of `"Label Propagation Clustering" <https://arxiv.org/abs/0709.2938>`
     from the Physical Review '07 paper "Near Linear Time Algorithm to Detect Community Structures
     in Large-Scale Networks". The tool executes a series of label propagations with unique labels.
     The final labels are used as cluster memberships.
@@ -13,7 +14,7 @@ class LabelPropagation(Estimator):
         seed (int): Random seed. Default is 42.
         iterations (int): Propagation iterations. Default is 100.
     """
-    def __init__(self, seed: int=42, iterations: int=100):
+    def __init__(self, seed: int = 42, iterations: int = 100):
         self.seed = seed
         self.iterations = iterations
 
@@ -41,12 +42,12 @@ class LabelPropagation(Estimator):
         random.shuffle(self._nodes)
         new_labels = {}
         for node in self._nodes:
-            neighbors = [neb for neb in nx.neighbors(self._graph, node)]
+            neighbors = [neb for neb in self._graph.neighbors(node)]
             pick = self._make_a_pick(neighbors)
             new_labels[node] = pick
         self._labels = new_labels
 
-    def fit(self, graph: nx.classes.graph.Graph):
+    def fit(self, graph: igraph.Graph):
         """
         Fitting a Label Propagation clustering model.
 
@@ -54,10 +55,10 @@ class LabelPropagation(Estimator):
             * **graph** *(NetworkX graph)* - The graph to be clustered.
         """
         self._set_seed()
-        self._check_graph(graph)
+        # self._check_graph(graph)
         self._graph = graph
-        self._nodes = [node for node in self._graph.nodes()]
-        self._labels = {node: i for i, node in enumerate(self._graph.nodes())}
+        self._nodes = [node['name'] for node in self._graph.vs]
+        self._labels = {node['name']: i for i, node in enumerate(self._graph.vs)}
         random.seed(self.seed)
         for _ in range(self.iterations):
             self._do_a_propagation()
